@@ -43,16 +43,16 @@ module RedisSingleFile
     SYNC_NAME = 'default'
     MUTEX_KEY = 'RedisSingleFile/Mutex/%s'
     QUEUE_KEY = 'RedisSingleFile/Queue/%s'
-    EXPIRE_IN = Configuration.instance.expire_in
+    EXPIRE_IN = Configuration.expire_in
 
     # blpop timeout exception class
     QueueTimeout = Class.new(StandardError)
 
     def initialize(
-      redis: nil,
-      name: SYNC_NAME,
-      host: Configuration.instance.host,
-      port: Configuration.instance.port
+      redis: nil,               # provide your own redis instance
+      name: SYNC_NAME,          # designated sync name per session
+      host: Configuration.host, # different redis host per session
+      port: Configuration.port  # different redis port per session
     )
       @redis = redis || Redis.new(host:, port:)
 
