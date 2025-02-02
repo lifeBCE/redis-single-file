@@ -29,6 +29,7 @@ Configure redis single file via its configuration object.
 RedisSingleFile.configuration do |config|
   # config.host = 'localhost'
   # config.port = '6379'
+  # config.name = 'default'
   # config.expire_in = 300
 end
 ```
@@ -77,7 +78,7 @@ a queue but will block when no values are present in the queue. A timeout can
 be provided to prevent deadlock situations.
 
 To unblock (unlock) an instance, add/push an item to the queue. This is done
-one at a time to controll the serialization of the distrubed execution. Redis
+one at a time to controll the serialization of the distrubuted execution. Redis
 selects the instance waiting the longest each time a new token is added.
 
 ### Auto Expiration
@@ -91,7 +92,8 @@ of two scenarios when entering synchronization.
 
 2. The mutex key is already set so the client will skip the priming and enter
    directly into the queue where it should immediately find a token left by
-   the last client upon completion.
+   the last client upon completion or block waiting for the current client to
+   finish execution.
 
 ### Considerations over redlock approach
 
@@ -126,7 +128,7 @@ Redis single file pushes much of this responsibility off to redis itself with th
 <blockquote>
 The redlock design requires a multi-master setup given it utilizes read operations that could be delegated to a read replica in a standard clustered redis deployement. Redis replication is handled in an async manner so replication lag can hinder distributed synchronization when using read operations against a cluster utlizing replication.
 <br /><br />
-Redis single file is not susceptible to this limitation given that <code>blpop</code> is a write operation meaning it will always be handled by the master node eliminating concerns voer replication lag.
+Redis single file is not susceptible to this limitation given that <code>blpop</code> is a write operation meaning it will always be handled by the master node eliminating concerns over replication lag.
 </blockquote>
 </details>
 

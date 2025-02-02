@@ -40,25 +40,20 @@ module RedisSingleFile
   #
   # @return [self] the semaphore instance
   class Semaphore
-    SYNC_NAME = 'default'
-    MUTEX_KEY = 'RedisSingleFile/Mutex/%s'
-    QUEUE_KEY = 'RedisSingleFile/Queue/%s'
-    EXPIRE_IN = Configuration.expire_in
 
-    # blpop timeout exception class
-    QueueTimeout = Class.new(StandardError)
-
+    #
+    # @return [self] semaphore instance
     def initialize(
       redis: nil,               # provide your own redis instance
-      name: SYNC_NAME,          # designate queue name per session
+      name: Configuration.name, # designate queue name per session
       host: Configuration.host, # designate redis host per session
       port: Configuration.port  # designate redis port per session
     )
       @redis = redis || Redis.new(host:, port:)
 
       @mutex_val = name
-      @mutex_key = format(MUTEX_KEY, @mutex_val)
-      @queue_key = format(QUEUE_KEY, @mutex_val)
+      @mutex_key = format(Configuration.mutex_key, @mutex_val)
+      @queue_key = format(Configuration.queue_key, @mutex_val)
     end
 
     #
@@ -104,6 +99,10 @@ module RedisSingleFile
 
     attr_reader :redis, :mutex_key, :mutex_val, :queue_key
 
+    def expire_in
+      @expire_in ||= Configuration.expire_in
+    end
+
     def prime_queue
       with_retry_protection do
         redis.multi do
@@ -118,8 +117,8 @@ module RedisSingleFile
         redis.multi do
           # queue next client execution
           redis.lpush(queue_key, '1') if redis.llen(queue_key) == 0
-          redis.expire(mutex_key, EXPIRE_IN) # set expiration for auto removal
-          redis.expire(queue_key, EXPIRE_IN) # set expiration for auto removal
+          redis.expire(mutex_key, expire_in) # set expiration for auto removal
+          redis.expire(queue_key, expire_in) # set expiration for auto removal
         end
       end
     end
