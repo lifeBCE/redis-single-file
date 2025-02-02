@@ -102,46 +102,35 @@ of pros and cons of redis single file over redlock.
 
 #### *Pro*: Multi-master redis node configuration not required.
 
-The redlock design requires a multi-master redis node setup where each node is
-completely independent of the others (no replication). This would be uncommon
-in most standard application deployment environments so a seperate redis setup
-would be required just for the distributed lock management.
+> [!WARNING]
+> The redlock design requires a multi-master redis node setup where each node is completely independent of the others (no replication). This would be uncommon in most standard application deployment environments so a seperate redis setup would be required just for the distributed lock management.
 
-Redis single file will work with your existing redis configuration so no need
-to maintain a seperate redis setup for the application of distributed semaphores.
+> [!NOTE]
+> Redis single file will work with your existing redis configuration so no need to maintain a seperate redis setup for the application of distributed semaphores.
 
 #### *Pro*: No polling or waiting logic needed as redis does all the blocking.
 
-The redlock design requires the client to enter into a polling loop checking
-for the ability to execute its logic repeatedly. This approach is less efficient
-and requires quite a bit more logic to accomplish also making it more prone to
-error.
+> [!WARNING]
+> The redlock design requires the client to enter into a polling loop checking for the ability to execute its logic repeatedly. This approach is less efficient and requires quite a bit more logic to accomplish also making it more prone to error.
 
-Redis single file pushes much of this responsibility off to redis itself with
-the use of the `blpop` command. Redis will block on that call when no item is
-present in the queue and will allocate tokens to competing clients waiting their
-turn on a `first-come, first-served basis`.
+> [!NOTE]
+> Redis single file pushes much of this responsibility off to redis itself with the use of the `blpop` command. Redis will block on that call when no item is present in the queue and will allocate tokens to competing clients waiting their turn on a `first-come, first-served basis`.
 
 #### *Pro*: Replication lag is not a concern with `blpop`
 
-The redlock design requires a multi-master setup given it utilizes read
-operations that could be delegated to a read replica in a standard clustered
-redis deployement. Redis replication is handled in an async manner so
-replication lag can hinder distributed synchronization when using read
-operations against a cluster utlizing replication.
+> [!WARNING]
+> The redlock design requires a multi-master setup given it utilizes read operations that could be delegated to a read replica in a standard clustered redis deployement. Redis replication is handled in an async manner so replication lag can hinder distributed synchronization when using read operations against a cluster utlizing replication.
 
-Redis single file is not susceptible to this limitation given that `blpop`
-is a write operation meaning it will always be handled by the master node
-eliminating concerns voer replication lag.
+> [!NOTE]
+> Redis single file is not susceptible to this limitation given that `blpop` is a write operation meaning it will always be handled by the master node eliminating concerns voer replication lag.
 
 #### *Con*: Redis cluster failover could disrupt currently queued clients.
 
-Redis single file does attempt to recognize a connection failure and proceeds
-in rejoining the queue when detected but there is still a small chance that a
-cluster failover could cause already queued clients to have issues.
+> [!WARNING]
+> Redis single file does attempt to recognize a connection failure and proceeds in rejoining the queue when detected but there is still a small chance that a cluster failover could cause already queued clients to have issues.
 
-Redlock is not susceptible to this given the use of the multi-master deployment
-and absence of read-replicas so cluster failover (and recovery) is not a concern.
+> [!NOTE]
+Redlock is not susceptible to this given the use of the multi-master deployment and absence of read-replicas so cluster failover (and recovery) is not a concern.
 
 ## Run Tests
 
