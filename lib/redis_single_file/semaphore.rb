@@ -1,41 +1,5 @@
 # frozen_string_literal: true
 
-#
-# == Distributed Queue =========================================================
-#
-# The redis blpop command will attempt to pop (delete and return) a value from
-# a queue but will block when no values are present in the queue. A timeout can
-# be provided to prevent deadlock situations.
-#
-# To unblock (unlock) an instance, add/push an item to the queue. This is done
-# one at a time to controll the serialization of the distrubed execution. Redis
-# selects the instance waiting the longest each time a new token is added.
-#
-# Pros/cons over redlock approach?
-#
-# 1. Pro: Multi-master redis node configuration not required.
-#
-# 2. Pro: No polling or waiting logic needed as redis does all the blocking.
-#
-# 3. Pro: Blpop is a write operation so clusters with read replicas can be used
-#    as all requests are sent to the write node eliminating any concern of
-#    replication lag negatively impacting synchronization.
-#
-# 4. Con: Redis cluster failover could disrupt currently queued clients.
-#
-# == Auto Expiration ===========================================================
-#
-# All redis keys are expired and automatically removed after a certain period
-# but will be recreated again on the next use. Each new client should face one
-# of two scenarios when entering synchronization.
-#
-# 1. The mutex key is not set causing the client to create the keys and prime
-#    the queue with its first token unlocking it for the first execution.
-#
-# 2. The mutex key is already set so the client will skip the priming and enter
-#    directly into the queue where it should immediately find a token left by
-#    the last client upon completion.
-#
 module RedisSingleFile
   #
   # This class acts as the main synchronization engine for distributed logic
@@ -65,6 +29,13 @@ module RedisSingleFile
   #   semaphore = RedisSingleFile::Semaphore.new(name: s3_file_upload)
   #   semaphore.synchronize(timeout: 15) do
   #      # synchronized logic defined here...
+  #   end
+  #
+  # @example Use your own redis client instance
+  #   redis = Redis.new(...)
+  #   semaphore = RedisSingleFile::Semaphore.new(redis:)
+  #   semaphore.synchronize do
+  #     # synchronized logic defined here...
   #   end
   #
   # @return [self] the semaphore instance
