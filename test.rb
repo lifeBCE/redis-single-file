@@ -34,7 +34,7 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 # exit
 
 
-while true do
+#while true do
 threads = ITERATIONS.times.map do
   thread = Thread.new do
     semaphore = RedisSingleFile::Mutex.new(name: RUN_ID)
@@ -51,4 +51,4 @@ end
 while threads.any?(&:alive?) do
   threads.each { _1.join(0.5) }
 end
-end
+#end

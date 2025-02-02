@@ -33,6 +33,41 @@ RedisSingleFile.configuration do |config|
 end
 ```
 
+## Usage Examples
+
+#### Default lock name and infinite blocking
+```ruby
+  semaphore = RedisSingleFile::Semaphore.new
+  semaphore.synchronize do
+    # synchronized logic defined here...
+  end
+```
+
+#### Named locks can provide exclusive synchronization
+```ruby
+   semaphore = RedisSingleFile::Semaphore.new(name: :user_cache_update)
+   semaphore.synchronize do
+      # synchronized logic defined here...
+   end
+```
+
+#### Prevent deadlocks by providing a timeout
+```ruby
+   semaphore = RedisSingleFile::Semaphore.new(name: :s3_file_upload)
+   semaphore.synchronize(timeout: 15) do
+      # synchronized logic defined here...
+   end
+```
+
+#### Use your own redis client instance
+```ruby
+   redis = Redis.new(...)
+   semaphore = RedisSingleFile::Semaphore.new(redis:)
+   semaphore.synchronize do
+      # synchronized logic defined here...
+   end
+```
+
 ## Documentation
 
 ### Distributed Queue Design
@@ -72,42 +107,7 @@ of two scenarios when entering synchronization.
    directly into the queue where it should immediately find a token left by
    the last client upon completion.
 
-## Usage Examples
-
-#### Default lock name and infinite blocking
-```ruby
-  semaphore = RedisSingleFile::Semaphore.new
-  semaphore.synchronize do
-    # synchronized logic defined here...
-  end
-```
-
-#### Named locks can provide exclusive synchronization
-```ruby
-   semaphore = RedisSingleFile::Semaphore.new(name: :user_cache_update)
-   semaphore.synchronize do
-      # synchronized logic defined here...
-   end
-```
-
-#### Prevent deadlocks by providing a timeout
-```ruby
-   semaphore = RedisSingleFile::Semaphore.new(name: s3_file_upload)
-   semaphore.synchronize(timeout: 15) do
-      # synchronized logic defined here...
-   end
-```
-
-#### Use your own redis client instance
-```ruby
-   redis = Redis.new(...)
-   semaphore = RedisSingleFile::Semaphore.new(redis:)
-   semaphore.synchronize do
-      # synchronized logic defined here...
-   end
-```
-
-## Run tests
+## Run Tests
 
 
 ## Disclaimer

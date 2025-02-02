@@ -84,8 +84,10 @@ module RedisSingleFile
     def synchronize!(timeout: 0)
       return unless block_given?
 
-      prime_queue unless redis.getset(mutex_key, mutex_val)
-      raise QueueTimeout unless redis.blpop(queue_key, timeout:)
+      with_retry_protection do
+        prime_queue unless redis.getset(mutex_key, mutex_val)
+        raise QueueTimeout unless redis.blpop(queue_key, timeout:)
+      end
 
       yield
     ensure
@@ -98,18 +100,36 @@ module RedisSingleFile
     attr_reader :redis, :mutex_key, :mutex_val, :queue_key
 
     def prime_queue
-      redis.multi do
-        redis.del(queue_key)        # remove existing queue
-        redis.lpush(queue_key, '1') # create and prime new queue
+      with_retry_protection do
+        redis.multi do
+          redis.del(queue_key)        # remove existing queue
+          redis.lpush(queue_key, '1') # create and prime new queue
+        end
       end
     end
 
     def unlock_queue
-      redis.multi do
-        # queue next client execution
-        redis.lpush(queue_key, '1') if redis.llen(queue_key) == 0
-        redis.expire(mutex_key, EXPIRE_IN) # set expiration for auto removal
-        redis.expire(queue_key, EXPIRE_IN) # set expiration for auto removal
+      with_retry_protection do
+        redis.multi do
+          # queue next client execution
+          redis.lpush(queue_key, '1') if redis.llen(queue_key) == 0
+          redis.expire(mutex_key, EXPIRE_IN) # set expiration for auto removal
+          redis.expire(queue_key, EXPIRE_IN) # set expiration for auto removal
+        end
+      end
+    end
+
+    def with_retry_protection
+      begin
+        yield if block_given?
+      rescue Redis::ConnectionError => _err
+        retry_count ||= 0
+        retry_count  += 1
+
+        sleep 1 # give redis time to heal
+        retry if retry_count < 10
+
+        raise # re-raise after all retries exhausted
       end
     end
   end
