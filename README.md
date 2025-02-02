@@ -1,2 +1,2 @@
-# redis_single_file
+# Redis Single File
 Distributed semaphore implementation with redis
