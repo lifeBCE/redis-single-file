@@ -72,7 +72,7 @@ end
 
 ### Distributed Queue Design
 
-The redis blpop command will attempt to pop (delete and return) a value from
+The redis `blpop` command will attempt to pop (delete and return) a value from
 a queue but will block when no values are present in the queue. A timeout can
 be provided to prevent deadlock situations.
 
@@ -113,7 +113,7 @@ Redis single file will work with your existing redis configuration so no need to
 <br />
 The redlock design requires the client to enter into a polling loop checking for the ability to execute its logic repeatedly. This approach is less efficient and requires quite a bit more logic to accomplish also making it more prone to error.
 <br /><br />
-Redis single file pushes much of this responsibility off to redis itself with the use of the `blpop` command. Redis will block on that call when no item is present in the queue and will allocate tokens to competing clients waiting their turn on a `first-come, first-served basis`.
+Redis single file pushes much of this responsibility off to redis itself with the use of the <code>blpop</code> command. Redis will block on that call when no item is present in the queue and will allocate tokens to competing clients waiting their turn on a `first-come, first-served basis`.
 </details>
 
 <details>
@@ -121,7 +121,7 @@ Redis single file pushes much of this responsibility off to redis itself with th
 <br />
 The redlock design requires a multi-master setup given it utilizes read operations that could be delegated to a read replica in a standard clustered redis deployement. Redis replication is handled in an async manner so replication lag can hinder distributed synchronization when using read operations against a cluster utlizing replication.
 <br /><br />
-Redis single file is not susceptible to this limitation given that `blpop` is a write operation meaning it will always be handled by the master node eliminating concerns voer replication lag.
+Redis single file is not susceptible to this limitation given that <code>blpop</code> is a write operation meaning it will always be handled by the master node eliminating concerns voer replication lag.
 </details>
 
 <details>
