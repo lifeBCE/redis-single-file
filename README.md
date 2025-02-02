@@ -25,7 +25,7 @@ Or install it yourself as:
 
 Configure redis single file via its configuration object.
 
-```redis
+```ruby
 RedisSingleFile.configuration do |config|
   # config.host = 'localhost'
   # config.port = '6379'
@@ -35,7 +35,7 @@ end
 
 ## Documentation
 
-## Distributed Queue Design
+### Distributed Queue Design
 
 The redis blpop command will attempt to pop (delete and return) a value from
 a queue but will block when no values are present in the queue. A timeout can
@@ -45,11 +45,12 @@ To unblock (unlock) an instance, add/push an item to the queue. This is done
 one at a time to controll the serialization of the distrubed execution. Redis
 selects the instance waiting the longest each time a new token is added.
 
-#### Considerations over redlock approach
+### Considerations over redlock approach
 
 [Redlock](https://github.com/leandromoreira/redlock-rb) is the current standard
 and the official approach suggested by redis themselves but the design does have
-some complexities/drawbacks that some may wish to avoid.
+some complexities/drawbacks that some may wish to avoid. The following is a list
+of pros and cons of redis single file over redlock.
 
 * *Pro*: Multi-master redis node configuration not required.
 * *Pro*: No polling or waiting logic needed as redis does all the blocking.
@@ -58,7 +59,7 @@ some complexities/drawbacks that some may wish to avoid.
    replication lag negatively impacting synchronization.
 * *Con*: Redis cluster failover could disrupt currently queued clients.
 
-## Auto Expiration
+### Auto Expiration
 
 All redis keys are expired and automatically removed after a certain period
 but will be recreated again on the next use. Each new client should face one
