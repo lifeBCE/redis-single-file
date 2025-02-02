@@ -11,8 +11,11 @@ require_relative "redis_single_file/semaphore"
 module RedisSingleFile
   Mutex = Semaphore
 
-  # initializer configuration block
-  def self.configuration
-    yield Configuration.instance if block_given?
+  class << self
+    def configuration
+      yield Configuration.instance if block_given?
+    end
+
+    def init(...) = Semaphore.new(...)
   end
 end

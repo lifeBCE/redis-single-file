@@ -15,7 +15,7 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 #  sleep 1
 #end
 
-# exit
+#exit
 
 #10.times.map do
 #  fork do

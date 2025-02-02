@@ -50,9 +50,9 @@ module RedisSingleFile
 
     def initialize(
       redis: nil,               # provide your own redis instance
-      name: SYNC_NAME,          # designated sync name per session
-      host: Configuration.host, # different redis host per session
-      port: Configuration.port  # different redis port per session
+      name: SYNC_NAME,          # designate queue name per session
+      host: Configuration.host, # designate redis host per session
+      port: Configuration.port  # designate redis port per session
     )
       @redis = redis || Redis.new(host:, port:)
 
@@ -87,6 +87,11 @@ module RedisSingleFile
       with_retry_protection do
         prime_queue unless redis.getset(mutex_key, mutex_val)
         raise QueueTimeout unless redis.blpop(queue_key, timeout:)
+
+        redis.multi do
+          redis.persist(mutex_key)
+          redis.persist(queue_key)
+        end
       end
 
       yield
@@ -126,9 +131,8 @@ module RedisSingleFile
         retry_count ||= 0
         retry_count  += 1
 
-        sleep 1 # give redis time to heal
-        retry if retry_count < 10
-
+        # retry 5 times over 15 seconds then give up
+        sleep(retry_count) && retry if retry_count < 6
         raise # re-raise after all retries exhausted
       end
     end
