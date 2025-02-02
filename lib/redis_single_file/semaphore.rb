@@ -1,12 +1,6 @@
 # frozen_string_literal: true
 
 #
-# == RedisSingleFile::Semaphore ================================================
-#
-# This class acts as the main synchronization engine for distributed logic
-# execution by utilizing the redis blpop command to facilitate a distributed
-# synchronous queue.
-#
 # == Distributed Queue =========================================================
 #
 # The redis blpop command will attempt to pop (delete and return) a value from
@@ -17,13 +11,17 @@
 # one at a time to controll the serialization of the distrubed execution. Redis
 # selects the instance waiting the longest each time a new token is added.
 #
-# Some benefits to this approach over the redlock design might be:
+# Pros/cons over redlock approach?
 #
-# - Multi-master redis node configuration not required
-# - No polling or waiting logic needed as redis does all the blocking
-# - Blpop is a write operation so clusters with read replicas can be used as
-#   all requests are sent to the write node eliminating any concern of
-#   replication lag negatively impacting synchronization
+# 1. Pro: Multi-master redis node configuration not required.
+#
+# 2. Pro: No polling or waiting logic needed as redis does all the blocking.
+#
+# 3. Pro: Blpop is a write operation so clusters with read replicas can be used
+#    as all requests are sent to the write node eliminating any concern of
+#    replication lag negatively impacting synchronization.
+#
+# 4. Con: Redis cluster failover could disrupt currently queued clients.
 #
 # == Auto Expiration ===========================================================
 #
@@ -38,36 +36,38 @@
 #    directly into the queue where it should immediately find a token left by
 #    the last client upon completion.
 #
-# ---
-#
-# @author lifeBCE
-#
-# @attr redis [...] redis client instance
-# @attr name [String] custom sync session name
-# @attr host [String] host for redis server
-# @attr port [String] port for redis server
-#
-# @example Default lock name and infinite blocking
-#   semaphore = RedisSingleFile::Semaphore.new
-#   semaphore.synchronize do
-#      # synchronized logic defined here...
-#   end
-#
-# @example Named locks can provide exclusive synchronization
-#   semaphore = RedisSingleFile::Semaphore.new(name: :user_cache_update)
-#   semaphore.synchronize do
-#      # synchronized logic defined here...
-#   end
-#
-# @example Prevent deadlocks by providing a timeout
-#   semaphore = RedisSingleFile::Semaphore.new(name: s3_file_upload)
-#   semaphore.synchronize(timeout: 15) do
-#      # synchronized logic defined here...
-#   end
-#
-# @return [self] the semaphore instance
-#
 module RedisSingleFile
+  #
+  # This class acts as the main synchronization engine for distributed logic
+  # execution by utilizing the redis blpop command to facilitate a distributed
+  # synchronous queue.
+  #
+  # @author lifeBCE
+  #
+  # @attr redis [...] redis client instance
+  # @attr name [String] custom sync session name
+  # @attr host [String] host for redis server
+  # @attr port [String] port for redis server
+  #
+  # @example Default lock name and infinite blocking
+  #   semaphore = RedisSingleFile::Semaphore.new
+  #   semaphore.synchronize do
+  #      # synchronized logic defined here...
+  #   end
+  #
+  # @example Named locks can provide exclusive synchronization
+  #   semaphore = RedisSingleFile::Semaphore.new(name: :user_cache_update)
+  #   semaphore.synchronize do
+  #      # synchronized logic defined here...
+  #   end
+  #
+  # @example Prevent deadlocks by providing a timeout
+  #   semaphore = RedisSingleFile::Semaphore.new(name: s3_file_upload)
+  #   semaphore.synchronize(timeout: 15) do
+  #      # synchronized logic defined here...
+  #   end
+  #
+  # @return [self] the semaphore instance
   class Semaphore
     SYNC_NAME = 'default'
     MUTEX_KEY = 'RedisSingleFile/Mutex/%s'
@@ -97,7 +97,6 @@ module RedisSingleFile
     # @param timeout [Integer] seconds for blpop to wait in queue
     # @yieldreturn [...] response from synchronized block execution
     # @return [nil] redis blpop timeout
-    #
     def synchronize(timeout: 0, &blk)
       synchronize!(timeout:, &blk)
     rescue QueueTimeout => _err
@@ -111,7 +110,6 @@ module RedisSingleFile
     # @param timeout [Integer] seconds for blpop to wait in queue
     # @yieldreturn [...] response from synchronized block execution
     # @raise [QueueTimeout] redis blpop timeout
-    #
     def synchronize!(timeout: 0)
       return unless block_given?
 
