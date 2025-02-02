@@ -3,7 +3,7 @@
 require_relative "lib/redis_single_file/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "redis_single_file"
+  spec.name = "redis-single-file"
   spec.version = RedisSingleFile::VERSION
   spec.authors = ["LifeBCE"]
   spec.email = ["eric06@gmail.com"]
