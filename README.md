@@ -38,7 +38,7 @@ end
 
 #### Default lock name and infinite blocking
 ```ruby
-  semaphore = RedisSingleFile::Semaphore.new
+  semaphore = RedisSingleFile.new
   semaphore.synchronize do
     # synchronized logic defined here...
   end
@@ -46,7 +46,7 @@ end
 
 #### Named locks can provide exclusive synchronization
 ```ruby
-   semaphore = RedisSingleFile::Semaphore.new(name: :user_cache_update)
+   semaphore = RedisSingleFile.new(name: :user_cache_update)
    semaphore.synchronize do
       # synchronized logic defined here...
    end
@@ -54,7 +54,7 @@ end
 
 #### Prevent deadlocks by providing a timeout
 ```ruby
-   semaphore = RedisSingleFile::Semaphore.new(name: :s3_file_upload)
+   semaphore = RedisSingleFile.new(name: :s3_file_upload)
    semaphore.synchronize(timeout: 15) do
       # synchronized logic defined here...
    end
@@ -63,7 +63,7 @@ end
 #### Use your own redis client instance
 ```ruby
    redis = Redis.new(...)
-   semaphore = RedisSingleFile::Semaphore.new(redis:)
+   semaphore = RedisSingleFile.new(redis:)
    semaphore.synchronize do
       # synchronized logic defined here...
    end

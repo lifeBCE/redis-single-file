@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'redis'
-require 'securerandom'
 require 'singleton'
 
 require_relative "redis_single_file/version"
@@ -20,6 +19,6 @@ module RedisSingleFile
       yield Configuration.instance if block_given?
     end
 
-    def init(...) = Semaphore.new(...)
+    def new(...) = Semaphore.new(...)
   end
 end
