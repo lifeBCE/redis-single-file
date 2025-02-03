@@ -148,6 +148,16 @@ Redlock is not susceptible to this given the use of the multi-master deployment 
 
 ## Disclaimer
 
+> [!WARNING]
+> Make sure you understand the limitations and reliability inherent in this implementation prior to using it in a production environment. No guarantees are made. Use at your own risk!
+
+## Inspiration
+
+Inspiration for this gem was taken from a number of existing projects. It would be beneficial for anyone interested to take a look at all 3.
+
+1. [Redlock](https://github.com/leandromoreira/redlock-rb)
+2. [redis-semaphore](https://github.com/dv/redis-semaphore)
+3. [redis-mutex](https://github.com/kenn/redis-mutex)
 
 ## Contributing
 
