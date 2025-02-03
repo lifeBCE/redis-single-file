@@ -144,7 +144,7 @@ Redlock is not susceptible to this given the use of the multi-master deployment 
 
 ## Run Tests
 
-coming soon...
+    $ bundle exec rspec
 
 ## Disclaimer
 

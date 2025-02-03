@@ -9,7 +9,7 @@ module RedisSingleFile
   # @author lifeBCE
   #
   # @attr redis [...] redis client instance
-  # @attr name [String] custom sync session name
+  # @attr name [String] custom sync queue name
   # @attr host [String] host for redis server
   # @attr port [String] port for redis server
   #
@@ -40,7 +40,25 @@ module RedisSingleFile
   #
   # @return [self] the semaphore instance
   class Semaphore
-
+    #
+    # @note redis:
+    #   Any more advanced configuration than host and port should be applied
+    #   to an instance outside of redis single file and passed in via this
+    #   attribute.
+    #
+    # @note name:
+    #   Distributed semaphores are coordinated by name. Each client that wishes
+    #   to synchronize a particular block should do so under the same name.
+    #
+    # #note host:
+    #   Each synchronized execution can be done on a different redis server
+    #   than globally configured. Passing a value for this attribute will
+    #   redirect to that host.
+    #
+    # @note port:
+    #   Each synchronized execution can be done on a different redis port
+    #   than globally configured. Passing a value for this attribute will
+    #   redirect to that port.
     #
     # @return [self] semaphore instance
     def initialize(
@@ -56,11 +74,10 @@ module RedisSingleFile
       @queue_key = format(Configuration.queue_key, @mutex_val)
     end
 
-    #
     # Queues up client and waits for turn to execute. Returns nil
     # when queue wait time expires.
     #
-    # @param timeout [Integer] seconds for blpop to wait in queue
+    # @param timeout [Integer] seconds for client to wait in queue
     # @yieldreturn [...] response from synchronized block execution
     # @return [nil] redis blpop timeout
     def synchronize(timeout: 0, &blk)
@@ -69,7 +86,6 @@ module RedisSingleFile
       nil
     end
 
-    #
     # Queues up client and waits for turn to execute. Raise exception
     # when queue wait time expires.
     #

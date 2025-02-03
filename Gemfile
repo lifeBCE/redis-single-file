@@ -12,3 +12,5 @@ gem "rspec", "~> 3.0"
 gem "rubocop", "~> 1.21"
 
 gem "pry", "~> 0.15.2"
+
+gem 'mock_redis', '~> 0.49.0'
