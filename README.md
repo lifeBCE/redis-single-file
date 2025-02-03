@@ -97,10 +97,7 @@ of two scenarios when entering synchronization.
 
 ### Considerations over redlock approach
 
-[Redlock](https://github.com/leandromoreira/redlock-rb) is the current standard
-and the official approach suggested by redis themselves but the design does have
-some complexities/drawbacks that some may wish to avoid. The following is a list
-of pros and cons of redis single file over redlock.
+[Redlock](https://github.com/leandromoreira/redlock-rb) is the current standard and the official approach [suggested by redis themselves](https://redis.io/docs/latest/develop/use/patterns/distributed-locks/) but the design does have some complexities/drawbacks that some may wish to avoid. The following is a list of pros and cons of redis single file over redlock.
 
 <details>
 <summary><code>Pro:</code> Multi-master redis node configuration not required</summary>
