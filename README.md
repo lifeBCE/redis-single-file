@@ -143,6 +143,11 @@ Redlock is not susceptible to this given the use of the multi-master deployment 
 
     $ bundle exec rspec
 
+```spec
+Finished in 0.00818 seconds (files took 0.09999 seconds to load)
+22 examples, 0 failures
+```
+
 ## Benchmark
 
     $ bundle exec ruby benchmark.rb
