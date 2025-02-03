@@ -82,7 +82,7 @@ module RedisSingleFile
     # @return [nil] redis blpop timeout
     def synchronize(timeout: 0, &blk)
       synchronize!(timeout:, &blk)
-    rescue QueueTimeout => _err
+    rescue QueueTimeout => _e
       nil
     end
 
@@ -140,16 +140,14 @@ module RedisSingleFile
     end
 
     def with_retry_protection
-      begin
-        yield if block_given?
-      rescue Redis::ConnectionError => _err
-        retry_count ||= 0
-        retry_count  += 1
+      yield if block_given?
+    rescue Redis::ConnectionError => _e
+      retry_count ||= 0
+      retry_count  += 1
 
-        # retry 5 times over 15 seconds then give up
-        sleep(retry_count) && retry if retry_count < 6
-        raise # re-raise after all retries exhausted
-      end
+      # retry 5 times over 15 seconds then give up
+      sleep(retry_count) && retry if retry_count < 6
+      raise # re-raise after all retries exhausted
     end
   end
 end

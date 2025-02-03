@@ -1,8 +1,41 @@
+require:
+  - rubocop-rake
+  - rubocop-rspec
+
 AllCops:
+  NewCops: enable
   TargetRubyVersion: 3.1
+  Exclude:
+    - 'test.rb'
 
-Style/StringLiterals:
-  EnforcedStyle: double_quotes
+Metrics/MethodLength:
+  Enabled: false
 
-Style/StringLiteralsInInterpolation:
-  EnforcedStyle: double_quotes
+Metrics/AbcSize:
+  Enabled: false
+
+# TODO: revisit this exclusion - (zero?)
+Style/NumericPredicate:
+  Exclude:
+    - lib/redis_single_file/semaphore.rb
+
+#
+# rspec stuff
+#
+
+# Prefer have_received for setting message expectations.
+#   Setup redis_mock as a spy using allow or instance_spy.
+RSpec/MessageSpies:
+  Enabled: false
+
+# Prefer allow over expect when configuring a response.
+RSpec/StubbedMock:
+  Enabled: false
+
+# Example has too many expectations [3/1].
+RSpec/MultipleExpectations:
+  Max: 6
+
+# Example has too many lines. [8/5]
+RSpec/ExampleLength:
+  Max: 10
