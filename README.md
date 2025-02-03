@@ -143,6 +143,30 @@ Redlock is not susceptible to this given the use of the multi-master deployment 
 
     $ bundle exec rspec
 
+## Benchmark
+
+    $ bundle exec ruby benchmark.rb
+
+```ruby
+ruby 3.2.0 (2022-12-25 revision a528908271) [arm64-darwin22]
+Warming up --------------------------------------
+         synchronize   434.000 i/100ms
+        synchronize!   434.000 i/100ms
+      threaded (10x)    29.000 i/100ms
+        forked (10x)     8.000 i/100ms
+Calculating -------------------------------------
+         synchronize      4.329k (± 1.9%) i/s  (230.98 μs/i) -     21.700k in   5.014460s
+        synchronize!      4.352k (± 0.3%) i/s  (229.79 μs/i) -     22.134k in   5.086272s
+      threaded (10x)    249.794 (±28.4%) i/s    (4.00 ms/i) -      1.073k in   5.058461s
+        forked (10x)     56.588 (± 3.5%) i/s   (17.67 ms/i) -    288.000 in   5.097885s
+
+Comparison:
+        synchronize!:     4351.8 i/s
+         synchronize:     4329.4 i/s - same-ish: difference falls within error
+      threaded (10x):      249.8 i/s - 17.42x  slower
+        forked (10x):       56.6 i/s - 76.90x  slower
+```
+
 ## Disclaimer
 
 > [!WARNING]
