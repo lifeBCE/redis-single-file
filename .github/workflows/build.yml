@@ -16,7 +16,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - run: gem build *.gemspec
+      - name: Build Ruby Gem
+        run: gem build *.gemspec
 #      - name: publish gem
 #        run: |
 #          mkdir -p $HOME/.gem
