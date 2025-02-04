@@ -1,0 +1,18 @@
+#
+# Github workflow to publish gem to rubygems
+#
+name: Publish to Rubygems
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  gem-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish to Rubygems
+        uses: cadwallion/publish-rubygems-action@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
