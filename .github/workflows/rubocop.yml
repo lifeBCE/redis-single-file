@@ -22,8 +22,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-#      - name: Rubocop Linter Action
-#        run: |
+      - name: Rubocop Linter Action
+        run: bundle exec rubocop #|
 #          bundle exec rubocop \
 #            --parallel \
 #            --fail-level convention \
