@@ -80,8 +80,8 @@ module RedisSingleFile
     # @param timeout [Integer] seconds for client to wait in queue
     # @yieldreturn [...] response from synchronized block execution
     # @return [nil] redis blpop timeout
-    def synchronize(timeout: 0, &blk)
-      synchronize!(timeout:, &blk)
+    def synchronize(timeout: 0, &)
+      synchronize!(timeout:, &)
     rescue QueueTimeout => _e
       nil
     end
@@ -100,8 +100,8 @@ module RedisSingleFile
         raise QueueTimeout unless redis.blpop(queue_key, timeout:)
 
         redis.multi do
-          redis.persist(mutex_key)
-          redis.persist(queue_key)
+          redis.persist(mutex_key) # unexpire during execution
+          redis.persist(queue_key) # unexpire during execution
         end
       end
 
