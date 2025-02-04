@@ -8,6 +8,7 @@ AllCops:
   TargetRubyVersion: 3.2
   Exclude:
     - 'test.rb'
+    - 'vendor/bundle/**/*'
 
 Metrics/MethodLength:
   Enabled: false
