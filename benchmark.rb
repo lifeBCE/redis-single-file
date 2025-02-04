@@ -24,7 +24,7 @@ Benchmark.ips do |x|
     end
 
     while threads.any?(&:alive?) do
-      threads.each { _1.join(0.5) }
+      threads.each { _1.join(0.05) }
     end
   end
 
