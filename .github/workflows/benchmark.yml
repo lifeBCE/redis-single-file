@@ -10,19 +10,15 @@ jobs:
       matrix:
         ruby:
           - '3.2.0'
-
     services:
       redis:
         image: redis
         ports: ["6379:6379"]
-
     steps:
     - uses: actions/checkout@v2
-
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
-
     - name: Run benchmark tests
       run: bundle exec ruby benchmark.rb
