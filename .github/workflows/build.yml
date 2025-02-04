@@ -4,7 +4,7 @@
 name: CI Ruby Gem Build
 on: [pull_request]
 jobs:
-  release-please:
+  gem-build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -18,12 +18,3 @@ jobs:
           bundler-cache: true
       - name: Build Ruby Gem
         run: gem build *.gemspec
-#      - name: publish gem
-#        run: |
-#          mkdir -p $HOME/.gem
-#          touch $HOME/.gem/credentials
-#          chmod 0600 $HOME/.gem/credentials
-#          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-#          gem push *.gem
-#        env:
-#          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
