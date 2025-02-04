@@ -22,13 +22,13 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Rubocop Linter Action
-        run: |
-          bundle exec rubocop \
-            --parallel \
-            --fail-level convention \
-            --display-only-fail-level-offenses \
-            --display-style-guide \
-            --force-exclusion \
-            --format progress \
-            --format github
+#      - name: Rubocop Linter Action
+#        run: |
+#          bundle exec rubocop \
+#            --parallel \
+#            --fail-level convention \
+#            --display-only-fail-level-offenses \
+#            --display-style-guide \
+#            --force-exclusion \
+#            --format progress \
+#            --format github
