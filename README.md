@@ -1,3 +1,9 @@
+[![Build Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/build.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/build.yml)
+[![RSpec Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/rspec.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/rspec.yml)
+[![CodeQL Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml)
+[![Rubocop Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/rubocop.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/rubocop.yml)
+[![Benchmark Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/benchmark.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/benchmark.yml)
+
 # Redis Single File - Distributed Execution Synchronization
 
 Redis single file is a queue-based implementation of a remote/shared semaphore
