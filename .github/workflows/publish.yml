@@ -6,6 +6,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 jobs:
   gem-publish:
     runs-on: ubuntu-latest
