@@ -10,10 +10,6 @@ jobs:
       matrix:
         ruby:
           - '3.2.0'
-#    services:
-#      redis:
-#        image: redis
-#        ports: ["6379:6379"]
     steps:
     - uses: actions/checkout@v4
     - uses: ruby/setup-ruby@v1
@@ -24,6 +20,9 @@ jobs:
       run: sudo apt-get install -y redis-tools redis-server
     - name: Verify that redis is up
       run: redis-cli ping
+    - name: Shutdown redis server
+      run: |
+        sudo systemctl stop redis || echo "Redis was not running"
     - name: Start redis cluster
       run: bin/cluster start
     - name: Create redis cluster
