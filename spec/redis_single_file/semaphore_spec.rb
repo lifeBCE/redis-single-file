@@ -57,7 +57,7 @@ RSpec.describe RedisSingleFile::Semaphore do
     expect(semaphore).to(
       receive(:synchronize!)
         .with(timeout: 0)
-        .and_raise(RedisSingleFile::QueueTimeout)
+        .and_raise(RedisSingleFile::QueueTimeoutError)
     )
 
     result = semaphore.synchronize { nil }

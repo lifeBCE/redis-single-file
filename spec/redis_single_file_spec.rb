@@ -19,7 +19,7 @@ RSpec.describe RedisSingleFile do
     expect(RedisSingleFile::Mutex).to eq(RedisSingleFile::Semaphore)
   end
 
-  it 'QueueTimeout exception extends StandardError' do
-    expect(RedisSingleFile::QueueTimeout.new).to be_a(StandardError)
+  it 'QueueTimeoutError exception extends StandardError' do
+    expect(RedisSingleFile::QueueTimeoutError.new).to be_a(StandardError)
   end
 end
