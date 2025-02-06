@@ -16,7 +16,7 @@
 # local run env settings
 #
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-BIN_PATH=$(dirname -- $(which redis-server))
+BIN_PATH="$(dirname -- "$(command -v redis-server)")"
 DUMP_DIR="$SCRIPT_DIR/.cluster_dump"
 
 #
