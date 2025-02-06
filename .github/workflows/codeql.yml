@@ -5,7 +5,6 @@ name: CI CodeQL Analysis
 on: [pull_request]
 jobs:
   codeql:
-    name: Analyze
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -14,14 +13,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby:
-          - '3.2.0'
+        language: ['ruby']
     steps:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.ruby }}
+        languages: ${{ matrix.language }}
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

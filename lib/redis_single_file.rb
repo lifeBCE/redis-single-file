@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'redis'
-require "redis-clustering"
+require 'redis-clustering'
 require 'singleton'
 
 require_relative 'redis_single_file/version'

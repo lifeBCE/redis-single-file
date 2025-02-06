@@ -24,6 +24,7 @@ module RedisSingleFile
     #   @return [Redis::Cluster] redis cluster instance
     def call
       raise ClusterDisabledError, 'cluster not detected' unless cluster_enabled?
+
       Redis::Cluster.new(**client_options, nodes:)
     end
 

@@ -15,7 +15,3 @@ gem 'rubocop', '~> 1.21'
 gem 'rubocop-factory_bot', '~> 2.26.1'
 gem 'rubocop-rake', '~> 0.6.0'
 gem 'rubocop-rspec', '~> 3.4.0 '
-
-
-
-gem 'redis-clustering', '~> 5.3.0'

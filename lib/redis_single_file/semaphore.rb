@@ -139,8 +139,8 @@ module RedisSingleFile
       end
     end
 
-    def with_retry_protection
-      with_cluster_protection { yield } if block_given?
+    def with_retry_protection(&)
+      with_cluster_protection(&) if block_given?
     rescue Redis::ConnectionError => _e
       retry_count ||= 0
       retry_count  += 1
@@ -153,7 +153,7 @@ module RedisSingleFile
     def with_cluster_protection
       yield if block_given?
     rescue Redis::CommandError => e
-      cmd = e.message.split(' ').first
+      cmd = e.message.split.first
 
       # cluster detected but client does not support
       # MOVED 14403 127.0.0.1:30003 (redis://localhost:30001)
