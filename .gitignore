@@ -12,3 +12,6 @@
 
 # compiled gems
 *.gem
+
+# cluster stuff
+bin/.cluster_dump/

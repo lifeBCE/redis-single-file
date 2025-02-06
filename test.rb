@@ -9,7 +9,7 @@ ITERATIONS = (ARGV[0] || 10).to_i
 WORK_LOAD  = (ARGV[1] || 1).to_i
 TIMEOUT    = ITERATIONS * WORK_LOAD
 
-#semaphore = RedisSingleFile::Mutex.new(name: RUN_ID)
+#semaphore = RedisSingleFile.new(name: RUN_ID, port: 30001)
 #semaphore.synchronize!(timeout: 10) do
 #  puts "Hello World!"
 #  sleep 1
@@ -19,7 +19,7 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 
 #10.times.map do
 #  fork do
-#    semaphore = RedisSingleFile::Mutex.new(name: RUN_ID)
+#    semaphore = RedisSingleFile.new(name: RUN_ID)
 #    semaphore.synchronize!(timeout: TIMEOUT) do
 #      puts "Hello World!"
 #      sleep WORK_LOAD
@@ -37,7 +37,7 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 #while true do
 threads = ITERATIONS.times.map do
   thread = Thread.new do
-    semaphore = RedisSingleFile::Mutex.new(name: RUN_ID)
+    semaphore = RedisSingleFile.new(name: RUN_ID, port: 30001)
     semaphore.synchronize(timeout: TIMEOUT) do
       puts "Hello World!"
       sleep WORK_LOAD

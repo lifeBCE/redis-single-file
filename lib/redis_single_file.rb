@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require 'redis'
+require "redis-clustering"
 require 'singleton'
 
 require_relative 'redis_single_file/version'
 require_relative 'redis_single_file/configuration'
+require_relative 'redis_single_file/cluster_client_builder'
 require_relative 'redis_single_file/semaphore'
 
 #
@@ -22,13 +24,18 @@ module RedisSingleFile
   Mutex = Semaphore
 
   # internal blpop timeout exception class
-  QueueTimeout = Class.new(StandardError)
+  QueueTimeoutError = Class.new(StandardError)
+
+  # MOVED response received but no cluster configured
+  ClusterDisabledError = Class.new(StandardError)
 
   class << self
+    # @return [Configuration] singleton instance
     def configuration
       yield Configuration.instance if block_given?
     end
 
+    # @return [Semaphore] distributed locking instance
     def new(...) = Semaphore.new(...)
   end
 end

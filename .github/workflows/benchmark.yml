@@ -4,7 +4,7 @@
 name: CI Benchmark Test
 on: [pull_request]
 jobs:
-  test:
+  benchmark:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,5 +20,15 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
+    - name: Start redis cluster
+      run: bin/cluster start
+    - name: Create redis cluster
+      run: bin/cluster create -f
     - name: Run benchmark tests
       run: bundle exec ruby benchmark.rb
+      env:
+        WORKFLOW_PORT: 30001
+    - name: Stop redis cluster
+      run: bin/cluster stop
+    - name: Clean redis cluster
+      run: bin/cluster clean
