@@ -18,20 +18,26 @@ jobs:
         bundler-cache: true
     - name: Install redis
       run: sudo apt-get install -y redis-tools redis-server
+
     - name: Verify that redis is up
       run: redis-cli ping
-    - name: Shutdown redis server
-      run: |
-        sudo systemctl stop redis || echo "Redis was not running"
+
+    - name: Shut primary redis down
+      run: sudo systemctl stop redis
+
     - name: Start redis cluster
       run: bin/cluster start
+
     - name: Create redis cluster
       run: bin/cluster create -f
+
     - name: Run benchmark tests
       run: bundle exec ruby benchmark.rb
       env:
         WORKFLOW_PORT: 30001
+
     - name: Stop redis cluster
       run: bin/cluster stop
+
     - name: Clean redis cluster
       run: bin/cluster clean
