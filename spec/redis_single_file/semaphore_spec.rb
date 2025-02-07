@@ -4,7 +4,6 @@ require 'mock_redis'
 
 RSpec.describe RedisSingleFile::Semaphore do
   let(:redis_mock) { MockRedis.new }
-  #  let(:redis) { Redis.new(url: 'mock://localhost') }
 
   before do
     allow(Redis).to receive(:new).and_return(redis_mock)

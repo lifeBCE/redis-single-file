@@ -25,6 +25,7 @@ module RedisSingleFile
     def call
       raise ClusterDisabledError, 'cluster not detected' unless cluster_enabled?
 
+      # use extracted client options with parsed nodes
       Redis::Cluster.new(**client_options, nodes:)
     end
 
@@ -54,9 +55,11 @@ module RedisSingleFile
     #   @return [Array<Hash>] list of parsed cluster nodes
     def cluster_nodes
       cluster_info = redis.cluster('NODES')
+
       cluster_info.split("\n").map do |line|
         parts = line.split
         master_id = parts[3] == '-' ? nil : parts[3]
+
         {
           id: parts[0],                 # Node ID
           address: parts[1],            # IP:Port@bus-port
@@ -75,6 +78,7 @@ module RedisSingleFile
     #   @return [Hash] current redis client config options
     def client_options
       config = redis._client.config
+
       {
         url: config.server_url,
         host: config.host,

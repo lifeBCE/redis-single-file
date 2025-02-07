@@ -31,10 +31,8 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 #
 #Process.waitall
 
-# exit
+#exit
 
-
-#while true do
 threads = ITERATIONS.times.map do
   thread = Thread.new do
     semaphore = RedisSingleFile.new(name: RUN_ID, port: 30001)
@@ -44,11 +42,7 @@ threads = ITERATIONS.times.map do
     end
   end
 
-#  sleep 0.05
   thread
 end
 
-while threads.any?(&:alive?) do
-  threads.each { _1.join(0.5) }
-end
-#end
+threads.each { _1.join(0.2) } while threads.any?(&:alive?)
