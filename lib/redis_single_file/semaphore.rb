@@ -131,7 +131,7 @@ module RedisSingleFile
     def unlock_queue
       with_retry_protection do
         redis.multi do
-          # queue next client execution
+          # queue next client execution if queue is empty
           redis.lpush(queue_key, '1') if redis.llen(queue_key) == 0
           redis.expire(mutex_key, expire_in) # set expiration for auto removal
           redis.expire(queue_key, expire_in) # set expiration for auto removal
@@ -155,23 +155,19 @@ module RedisSingleFile
     rescue Redis::CommandError => e
       cmd = e.message.split.first
 
-      # cluster detected but client does not support
+      # redis cluster configured but client does not support
       # MOVED 14403 127.0.0.1:30003 (redis://localhost:30001)
       if cmd == 'MOVED'
         retry_count ||= 0
         retry_count  += 1
 
-        # convert current client to cluster client
-        @redis = ClusterClientBuilder.call(redis:)
-
-        # allow a single retry with the cluster client
-        retry if retry_count < 2
+        if retry_count < 2 # allow a single retry
+          @redis = ClusterClientBuilder.call(redis:)
+          retry # retry same command with new client
+        end
       end
 
-      # re-raise if...
-      #   1. cmd is not MOVED
-      #   2. retries have been exhausted
-      raise
+      raise # cmd != MOVED or retries exhausted
     end
   end
 end

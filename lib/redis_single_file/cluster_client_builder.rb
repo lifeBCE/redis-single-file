@@ -15,7 +15,7 @@ module RedisSingleFile
       def call(...) = new(...).call
     end
 
-    def initialize(redis: nil)
+    def initialize(redis:)
       @redis = redis
     end
 
@@ -78,23 +78,16 @@ module RedisSingleFile
     #   @return [Hash] current redis client config options
     def client_options
       config = redis._client.config
+      params = %i[
+        db ssl host port path custom username password protocol
+        ssl_params read_timeout write_timeout connect_timeout
+      ]
 
-      {
-        url: config.server_url,
-        host: config.host,
-        port: config.port,
-        path: config.path,
-        db: config.db,
-        username: config.username,
-        password: config.password,
-        protocol: config.protocol,
-        read_timeout: config.read_timeout,
-        connect_timeout: config.connect_timeout,
-        write_timeout: config.write_timeout,
-        custom: config.custom,
-        ssl: config.ssl?,
-        ssl_params: config.ssl_params
-      }
+      params_hash = params.each.with_object({}) do |key, memo|
+        memo[key] = config.public_send(key)
+      end
+
+      params_hash.merge(url: config.server_url)
     end
   end
 end
