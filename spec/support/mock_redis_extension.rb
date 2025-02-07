@@ -16,7 +16,7 @@ module MockRedisExtension
 
   private
 
-  def clust_info
+  def cluster_info
     # hash with the expected cluster info data
     info = {
       cluster_state: 'ok',
