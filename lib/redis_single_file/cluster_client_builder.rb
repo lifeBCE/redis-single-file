@@ -12,16 +12,31 @@ module RedisSingleFile
   # @return [self] the custer_client instance
   class ClusterClientBuilder
     class << self
+      #
+      # Delegates class method calls to instance method
+      #
+      # @param [...] params passes directly to constructor
+      # @return [Redis::Cluster] redis cluster instance
       def call(...) = new(...).call
     end
-
+    #
+    # @note redis:
+    #   Standard redis client instance for a clustered environment. The
+    #   cluster information will be extracted from this client when creating
+    #   the new cluster-enabled client so must responsd to cluster commands
+    #   and have an enabled cluster configured.
+    #
+    # @return [self] cluster client builder instance
     def initialize(redis:)
       @redis = redis
     end
 
-    # !@method call
-    #   @raise [ClusterDisabledError] if cluster not enabled
-    #   @return [Redis::Cluster] redis cluster instance
+    # Convert standard redis client to a cluster-enabled client. Client options
+    # are extracted from the original client and passed to the new client along
+    # with parsed nodes from original client's cluster configuration.
+    #
+    # @raise [ClusterDisabledError] if cluster not enabled
+    # @return [Redis::Cluster] redis cluster instance
     def call
       raise ClusterDisabledError, 'cluster not detected' unless cluster_enabled?
 
@@ -31,28 +46,22 @@ module RedisSingleFile
 
     private # ==================================================================
 
-    # !@method redis
-    #   @return [Redis|Redis::Cluster] redis client
     attr_reader :redis
 
-    # !@method nodes
-    #   @return [Array<String>] list of redis master nodes
     def nodes
-      cluster_nodes
-        .select { _1[:flags].include?('master') }
-        .map    { "redis://#{_1[:address].split('@').first}" }
+      cluster_nodes.filter_map do |node|
+        next unless node[:flags].include?('master')
+
+        "redis://#{node[:address].split('@').first}"
+      end
     end
 
-    # !@method cluster_enabled?
-    #   @return [Boolean] whether client is connected to a cluster
     def cluster_enabled?
       redis.info('cluster')['cluster_enabled'] == '1'
     rescue Redis::CommandError
       false # assume cluster mode is disabled
     end
 
-    # !@method cluster_nodes
-    #   @return [Array<Hash>] list of parsed cluster nodes
     def cluster_nodes
       cluster_info = redis.cluster('NODES')
 
@@ -74,8 +83,6 @@ module RedisSingleFile
       end
     end
 
-    # !@method client_options
-    #   @return [Hash] current redis client config options
     def client_options
       config = redis._client.config
       params = %i[
