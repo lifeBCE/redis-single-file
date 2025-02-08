@@ -34,7 +34,7 @@ jobs:
     - name: Run benchmark tests
       run: bundle exec ruby benchmark.rb
       env:
-        WORKFLOW_PORT: 30001
+        REDIS_PORT: 30001
 
     - name: Stop redis cluster
       run: bin/cluster stop

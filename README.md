@@ -1,8 +1,7 @@
 [![Build Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/build.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/build.yml)
 [![RSpec Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/rspec.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/rspec.yml)
-[![CodeQL Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml)
 [![Rubocop Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/rubocop.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/rubocop.yml)
-[![Benchmark Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/benchmark.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/benchmark.yml)
+[![CodeQL Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml)
 
 # Redis Single File - Distributed Execution Synchronization
 
@@ -79,27 +78,29 @@ end
 
 ### Distributed Queue Design
 
-The redis `blpop` command will attempt to pop (delete and return) a value from
-a queue but will block when no values are present in the queue. A timeout can
-be provided to prevent deadlock situations.
-
-To unblock (unlock) an instance, add/push an item to the queue. This is done
-one at a time to controll the serialization of the distrubuted execution. Redis
-selects the instance waiting the longest each time a new token is added.
+> [!IMPORTANT]
+> The redis `blpop` command will attempt to pop (delete and return) a value from
+> a queue but will block when no values are present in the queue. A timeout can
+> be provided to prevent deadlock situations.
+>
+> To unblock (unlock) an instance, add/push an item to the queue. This is done
+> one at a time to controll the serialization of the distrubuted execution. Redis
+> selects the instance waiting the longest each time a new token is added.
 
 ### Auto Expiration
 
-All redis keys are expired and automatically removed after a certain period
-but will be recreated again on the next use. Each new client should face one
-of two scenarios when entering synchronization.
-
-1. The mutex key is not set causing the client to create the keys and prime
-   the queue with its first token unlocking it for the first execution.
-
-2. The mutex key is already set so the client will skip the priming and enter
-   directly into the queue where it should immediately find a token left by
-   the last client upon completion or block waiting for the current client to
-   finish execution.
+> [!NOTE]
+> All redis keys are expired and automatically removed after a certain period
+> but will be recreated again on the next use. Each new client should face one
+> of two scenarios when entering synchronization.
+>
+> 1. The mutex key is not set causing the client to create the keys and prime
+>    the queue with its first token unlocking it for the first execution.
+>
+> 2. The mutex key is already set so the client will skip the priming and enter
+>    directly into the queue where it should immediately find a token left by
+>    the last client upon completion or block waiting for the current client to
+>    finish execution.
 
 ### Considerations over redlock approach
 
@@ -177,6 +178,95 @@ Comparison:
       threaded (10x):      249.8 i/s - 17.42x  slower
         forked (10x):       56.6 i/s - 76.90x  slower
 ```
+
+## Cluster Management
+
+After installing redis locally, you can use the provided `bin/cluster` script to manage a local cluster. To customize your local cluster, edit the `bin/cluster` script to provide your own values for the following script variables.
+
+```bash
+#
+# configurable settings
+#
+HOST=127.0.0.1
+PORT=30000
+MASTERS=3  # min 3 for cluster
+REPLICAS=2 # replicas per master
+TIMEOUT=2000
+PROTECTED_MODE=yes
+ADDITIONAL_OPTIONS=""
+```
+
+<details>
+<summary><strong>Start cluster nodes</strong></summary>
+
+    $ bin/cluster start
+
+```console
+Starting 30001
+Starting 30002
+Starting 30003
+Starting 30004
+Starting 30005
+Starting 30006
+Starting 30007
+Starting 30008
+Starting 30009
+```
+</details>
+
+<details>
+<summary><strong>Create cluster configuration</strong></summary>
+
+    $ bin/cluster create -f
+
+```console
+>>> Performing hash slots allocation on 9 nodes...
+Master[0] -> Slots 0 - 5460
+Master[1] -> Slots 5461 - 10922
+Master[2] -> Slots 10923 - 16383
+Adding replica 127.0.0.1:30005 to 127.0.0.1:30001
+Adding replica 127.0.0.1:30006 to 127.0.0.1:30001
+Adding replica 127.0.0.1:30007 to 127.0.0.1:30002
+Adding replica 127.0.0.1:30008 to 127.0.0.1:30002
+Adding replica 127.0.0.1:30009 to 127.0.0.1:30003
+Adding replica 127.0.0.1:30004 to 127.0.0.1:30003
+```
+</details>
+
+<details>
+<summary><strong>Stop cluster nodes</strong></summary>
+
+    $ bin/cluster stop
+
+```console
+Stopping 30001
+Stopping 30002
+Stopping 30003
+Stopping 30004
+Stopping 30005
+Stopping 30006
+Stopping 30007
+Stopping 30008
+Stopping 30009
+```
+</details>
+
+<details>
+<summary><strong>Clean local cluster files</strong></summary>
+
+    $ bin/cluster clean
+
+```console
+Cleaning *.log
+Cleaning appendonlydir-*
+Cleaning dump-*.rdb
+Cleaning nodes-*.conf
+```
+</details>
+
+After the cluster is running and configured, you can direct the `test.rb` and `benchmark.rb` scripts at the cluster by setting the port on execution.
+
+    $ REDIS_PORT=30001 bundle exec ruby benchmark.rb
 
 ## Disclaimer
 

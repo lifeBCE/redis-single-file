@@ -3,7 +3,7 @@
 require 'benchmark/ips'
 require 'redis_single_file'
 
-PORT = ENV['WORKFLOW_PORT'] || 6379
+PORT = ENV['REDIS_PORT'] || 6379
 
 scenario_1_semaphore = RedisSingleFile.new(name: :scenario1, port: PORT)
 scenario_2_semaphore = RedisSingleFile.new(name: :scenario2, port: PORT)
