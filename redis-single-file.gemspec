@@ -19,15 +19,14 @@ Gem::Specification.new do |spec|
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
-  spec.metadata["changelog_uri"] = 'https://github.com/lifeBCE/redis-single-file/blob/main/CHANGELOG.md'
+  spec.metadata['changelog_uri'] = 'https://github.com/lifeBCE/redis-single-file/blob/main/CHANGELOG.md'
 
   # Local variables used when setting spec.files below
   gemspec  = File.basename(__FILE__)
   rejected = %w[bin/ test/ spec/ features/ .git .github appveyor Gemfile]
 
-  # NOTE:
-  #   Grab list of files to include in gem from git. New files/directories will
-  #   not be picked up until running 'git add' prior to building gem.
+  # NOTE: Grabs list of files to include in gem from git. New files/directories
+  # will not be picked up until running 'git add' prior to building gem.
   #
   spec.files =
     IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
@@ -46,7 +45,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'redis-clustering', '~> 5.3.0'
 
   # Disable MFA Requirement - github publishing can't support
-  spec.metadata['rubygems_mfa_required'] = 'false'
+  spec.metadata['rubygems_mfa_required'] = false
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

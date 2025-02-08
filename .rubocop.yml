@@ -41,3 +41,7 @@ RSpec/MultipleExpectations:
 # Example has too many lines. [8/5]
 RSpec/ExampleLength:
   Max: 20
+
+# Rubygems 2FA can't be used with github publish workflow
+Gemspec/RequireMFA:
+  Enabled: false
