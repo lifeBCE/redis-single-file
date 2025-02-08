@@ -1,15 +1,17 @@
 #!/usr/bin/env ruby
 
 require 'pry'
+require 'securerandom'
 require 'redis_single_file'
 
-RUN_ID = 'same-same' #SecureRandom.uuid
+PORT = ENV['REDIS_PORT'] || 6379
+RUN_ID = SecureRandom.uuid
 
 ITERATIONS = (ARGV[0] || 10).to_i
 WORK_LOAD  = (ARGV[1] || 1).to_i
 TIMEOUT    = ITERATIONS * WORK_LOAD
 
-#semaphore = RedisSingleFile.new(name: RUN_ID, port: 30001)
+#semaphore = RedisSingleFile.new(name: RUN_ID, port: PORT)
 #semaphore.synchronize!(timeout: 10) do
 #  puts "Hello World!"
 #  sleep 1
@@ -19,7 +21,7 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 
 #10.times.map do
 #  fork do
-#    semaphore = RedisSingleFile.new(name: RUN_ID)
+#    semaphore = RedisSingleFile.new(name: RUN_ID, port: PORT)
 #    semaphore.synchronize!(timeout: TIMEOUT) do
 #      puts "Hello World!"
 #      sleep WORK_LOAD
@@ -35,7 +37,7 @@ TIMEOUT    = ITERATIONS * WORK_LOAD
 
 threads = ITERATIONS.times.map do
   thread = Thread.new do
-    semaphore = RedisSingleFile.new(name: RUN_ID, port: 30001)
+    semaphore = RedisSingleFile.new(name: RUN_ID, port: PORT)
     semaphore.synchronize(timeout: TIMEOUT) do
       puts "Hello World!"
       sleep WORK_LOAD
