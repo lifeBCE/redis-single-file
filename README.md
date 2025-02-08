@@ -2,7 +2,6 @@
 [![RSpec Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/rspec.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/rspec.yml)
 [![CodeQL Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/codeql.yml)
 [![Rubocop Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/rubocop.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/rubocop.yml)
-[![Benchmark Status](https://github.com/lifeBCE/redis-single-file/actions/workflows/benchmark.yml/badge.svg)](https://github.com/lifeBCE/redis-single-file/actions/workflows/benchmark.yml)
 
 # Redis Single File - Distributed Execution Synchronization
 
@@ -177,6 +176,91 @@ Comparison:
       threaded (10x):      249.8 i/s - 17.42x  slower
         forked (10x):       56.6 i/s - 76.90x  slower
 ```
+
+## Cluster Management
+
+After installing redis locally, you can use the provided `bin/cluster` script to manage a local cluster. To customize your local cluster, edit the `bin/cluster` script to provide your own values for the following script variables.
+
+```bash
+#
+# configurable settings
+#
+HOST=127.0.0.1
+PORT=30000
+MASTERS=3  # min 3 for cluster
+REPLICAS=2 # replicas per master
+TIMEOUT=2000
+PROTECTED_MODE=yes
+ADDITIONAL_OPTIONS=""
+```
+
+<details>
+<summary><strong>Start cluster nodes</strong></summary>
+
+    $ bin/cluster start
+
+```console
+Starting 30001
+Starting 30002
+Starting 30003
+Starting 30004
+Starting 30005
+Starting 30006
+Starting 30007
+Starting 30008
+Starting 30009
+```
+</details>
+
+<details>
+<summary><strong>Create cluster configuration</strong></summary>
+
+    $ bin/cluster create -f
+
+```console
+>>> Performing hash slots allocation on 9 nodes...
+Master[0] -> Slots 0 - 5460
+Master[1] -> Slots 5461 - 10922
+Master[2] -> Slots 10923 - 16383
+Adding replica 127.0.0.1:30005 to 127.0.0.1:30001
+Adding replica 127.0.0.1:30006 to 127.0.0.1:30001
+Adding replica 127.0.0.1:30007 to 127.0.0.1:30002
+Adding replica 127.0.0.1:30008 to 127.0.0.1:30002
+Adding replica 127.0.0.1:30009 to 127.0.0.1:30003
+Adding replica 127.0.0.1:30004 to 127.0.0.1:30003
+```
+</details>
+
+<details>
+<summary><strong>Stop cluster nodes</strong></summary>
+
+    $ bin/cluster stop
+
+```console
+Stopping 30001
+Stopping 30002
+Stopping 30003
+Stopping 30004
+Stopping 30005
+Stopping 30006
+Stopping 30007
+Stopping 30008
+Stopping 30009
+```
+</details>
+
+<details>
+<summary><strong>Clean local cluster files</strong></summary>
+
+    $ bin/cluster clean
+
+```console
+Cleaning *.log
+Cleaning appendonlydir-*
+Cleaning dump-*.rdb
+Cleaning nodes-*.conf
+```
+</details>
 
 ## Disclaimer
 
