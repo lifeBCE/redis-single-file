@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+
+#
+# Redis cluster management script used to manage a redis cluster for local
+# testing purposes. Each function defined below can be directly called on
+# the command line.
+#
+# Example:
+#   bin/cluster start
+#   bin/cluster create -f
+#   bin/cluster stop
+#   ...
+#
+
+#
+# local run env settings
+#
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+BIN_PATH="$(dirname -- "$(command -v redis-server)")"
+DUMP_DIR="$SCRIPT_DIR/.cluster_dump"
+
+#
+# configurable settings
+#
+HOST=127.0.0.1
+PORT=30000
+MASTERS=3  # min 3 for cluster
+REPLICAS=2 # replicas per master
+TIMEOUT=2000
+PROTECTED_MODE=yes
+ADDITIONAL_OPTIONS=""
+
+#
+# computed settings
+#
+ALLNODES=$((MASTERS+$((MASTERS*REPLICAS))))
+ENDPORT=$((PORT+ALLNODES))
+
+# ensure dump directory exists
+[ -d "$DUMP_DIR" ] || mkdir -p $DUMP_DIR
+
+# ==============================================================================
+
+start() {
+    local STARTPORT=PORT
+
+    while [ $((STARTPORT < ENDPORT)) != "0" ]; do
+        STARTPORT=$((STARTPORT+1))
+        echo "Starting $STARTPORT"
+        $BIN_PATH/redis-server --port $STARTPORT \
+                               --dir $DUMP_DIR \
+                               --protected-mode $PROTECTED_MODE \
+                               --cluster-enabled yes \
+                               --cluster-config-file nodes-${STARTPORT}.conf \
+                               --cluster-node-timeout $TIMEOUT \
+                               --appendonly yes \
+                               --appendfilename appendonly-${STARTPORT}.aof \
+                               --appenddirname appendonlydir-${STARTPORT} \
+                               --dbfilename dump-${STARTPORT}.rdb \
+                               --logfile ${STARTPORT}.log \
+                               --daemonize yes ${ADDITIONAL_OPTIONS}
+    done
+}
+
+# ==============================================================================
+
+stop() {
+    local STOPPORT=PORT
+
+    while [ $((STOPPORT < ENDPORT)) != "0" ]; do
+        STOPPORT=$((STOPPORT+1))
+        echo "Stopping $STOPPORT"
+        $BIN_PATH/redis-cli -p $STOPPORT shutdown nosave
+    done
+}
+
+# ==============================================================================
+
+create() {
+    local HOSTS=""
+    local OPT_ARG=""
+    local CREATEPORT=PORT
+
+    while [ $((CREATEPORT < ENDPORT)) != "0" ]; do
+        CREATEPORT=$((CREATEPORT+1))
+        HOSTS="$HOSTS $HOST:$CREATEPORT"
+    done
+
+    [ "$1" == "-f" ] && OPT_ARG="--cluster-yes"
+    $BIN_PATH/redis-cli --cluster create $HOSTS --cluster-replicas $REPLICAS $OPT_ARG
+}
+
+# ==============================================================================
+
+restart() {
+    stop && start
+}
+
+# ==============================================================================
+
+watch() {
+    local WATCHPORT=$((PORT+1))
+
+    while [ 1 ]; do
+        clear
+        date
+        $BIN_PATH/redis-cli -p $WATCHPORT cluster nodes | head -30
+        sleep 1
+    done
+}
+
+# ==============================================================================
+
+tail() {
+    local INSTANCE=$1
+    local TAILPORT=$((PORT+INSTANCE))
+
+    tail -f ${TAILPORT}.log
+}
+
+# ==============================================================================
+
+tailall() {
+    tail -f *.log
+}
+
+# ==============================================================================
+
+call() {
+    local CALLPORT=PORT
+
+    while [ $((CALLPORT < ENDPORT)) != "0" ]; do
+        CALLPORT=$((CALLPORT+1))
+        $BIN_PATH/redis-cli -p $CALLPORT $1 $2 $3 $4 $5 $6 $7 $8
+    done
+}
+
+# ==============================================================================
+
+clean() {
+    echo "Cleaning *.log"
+    rm -rf $DUMP_DIR/*.log
+    echo "Cleaning appendonlydir-*"
+    rm -rf $DUMP_DIR/appendonlydir-*
+    echo "Cleaning dump-*.rdb"
+    rm -rf $DUMP_DIR/dump-*.rdb
+    echo "Cleaning nodes-*.conf"
+    rm -rf $DUMP_DIR/nodes-*.conf
+}
+
+# ==============================================================================
+
+clean-logs() {
+    echo "Cleaning *.log"
+    rm -rf $DUMP_DIR/*.log
+}
+
+# ==============================================================================
+
+# dynamic function execution
+if declare -F "$1" >/dev/null; then
+    "$@" && exit 0 || exit 1
+fi
+
+# no command was given or the command is invalid if we get here
+echo "Usage: $0 [start|create|stop|restart|watch|tail|tailall|clean|clean-logs|call]"
+echo "start       -- Launch Redis Cluster instances."
+echo "create [-f] -- Create a cluster using redis-cli --cluster create."
+echo "stop        -- Stop Redis Cluster instances."
+echo "restart     -- Restart Redis Cluster instances."
+echo "watch       -- Show CLUSTER NODES output (first 30 lines) of first node."
+echo "tail <id>   -- Run tail -f of instance at base port + ID."
+echo "tailall     -- Run tail -f for all the log files at once."
+echo "clean       -- Remove all instances data, logs, configs."
+echo "clean-logs  -- Remove just instances logs."
+echo "call <cmd>  -- Call a command (up to 7 arguments) on all nodes."
+

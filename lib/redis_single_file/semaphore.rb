@@ -82,7 +82,7 @@ module RedisSingleFile
     # @return [nil] redis blpop timeout
     def synchronize(timeout: 0, &)
       synchronize!(timeout:, &)
-    rescue QueueTimeout => _e
+    rescue QueueTimeoutError => _e
       nil
     end
 
@@ -91,13 +91,13 @@ module RedisSingleFile
     #
     # @param timeout [Integer] seconds for blpop to wait in queue
     # @yieldreturn [...] response from synchronized block execution
-    # @raise [QueueTimeout] redis blpop timeout
+    # @raise [QueueTimeoutError] redis blpop timeout
     def synchronize!(timeout: 0)
       return unless block_given?
 
       with_retry_protection do
         prime_queue unless redis.getset(mutex_key, mutex_val)
-        raise QueueTimeout unless redis.blpop(queue_key, timeout:)
+        raise QueueTimeoutError unless redis.blpop(queue_key, timeout:)
 
         redis.multi do
           redis.persist(mutex_key) # unexpire during execution
@@ -131,7 +131,7 @@ module RedisSingleFile
     def unlock_queue
       with_retry_protection do
         redis.multi do
-          # queue next client execution
+          # queue next client execution if queue is empty
           redis.lpush(queue_key, '1') if redis.llen(queue_key) == 0
           redis.expire(mutex_key, expire_in) # set expiration for auto removal
           redis.expire(queue_key, expire_in) # set expiration for auto removal
@@ -139,8 +139,8 @@ module RedisSingleFile
       end
     end
 
-    def with_retry_protection
-      yield if block_given?
+    def with_retry_protection(&)
+      with_cluster_protection(&) if block_given?
     rescue Redis::ConnectionError => _e
       retry_count ||= 0
       retry_count  += 1
@@ -148,6 +148,26 @@ module RedisSingleFile
       # retry 5 times over 15 seconds then give up
       sleep(retry_count) && retry if retry_count < 6
       raise # re-raise after all retries exhausted
+    end
+
+    def with_cluster_protection
+      yield if block_given?
+    rescue Redis::CommandError => e
+      cmd = e.message.split.first
+
+      # redis cluster configured but client does not support
+      # MOVED 14403 127.0.0.1:30003 (redis://localhost:30001)
+      if cmd == 'MOVED'
+        retry_count ||= 0
+        retry_count  += 1
+
+        if retry_count < 2 # allow a single retry
+          @redis = ClusterClientBuilder.call(redis:)
+          retry # retry same command with new client
+        end
+      end
+
+      raise # cmd != MOVED or retries exhausted
     end
   end
 end

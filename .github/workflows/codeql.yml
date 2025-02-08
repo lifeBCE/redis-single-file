@@ -4,8 +4,7 @@
 name: CI CodeQL Analysis
 on: [pull_request]
 jobs:
-  analyze:
-    name: Analyze
+  codeql:
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -21,6 +20,6 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{matrix.language}}
+        languages: ${{ matrix.language }}
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

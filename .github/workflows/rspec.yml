@@ -4,7 +4,7 @@
 name: CI RSpec Tests
 on: [pull_request]
 jobs:
-  test:
+  rspec:
     runs-on: ubuntu-latest
     strategy:
       matrix:

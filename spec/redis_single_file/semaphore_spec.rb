@@ -4,7 +4,6 @@ require 'mock_redis'
 
 RSpec.describe RedisSingleFile::Semaphore do
   let(:redis_mock) { MockRedis.new }
-  #  let(:redis) { Redis.new(url: 'mock://localhost') }
 
   before do
     allow(Redis).to receive(:new).and_return(redis_mock)
@@ -57,7 +56,7 @@ RSpec.describe RedisSingleFile::Semaphore do
     expect(semaphore).to(
       receive(:synchronize!)
         .with(timeout: 0)
-        .and_raise(RedisSingleFile::QueueTimeout)
+        .and_raise(RedisSingleFile::QueueTimeoutError)
     )
 
     result = semaphore.synchronize { nil }

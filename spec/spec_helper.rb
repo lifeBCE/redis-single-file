@@ -9,7 +9,9 @@ RSpec.configure do |config|
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
 
-  config.expect_with :rspec do |c|
-    c.syntax = :expect
-  end
+  # set rspec expect syntax
+  config.expect_with(:rspec) { _1.syntax = :expect }
+
+  # load heler files from support directory
+  Dir[File.join(__dir__, 'support/**/*.rb')].each { require _1 }
 end

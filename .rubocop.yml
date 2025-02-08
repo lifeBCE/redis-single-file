@@ -40,4 +40,4 @@ RSpec/MultipleExpectations:
 
 # Example has too many lines. [8/5]
 RSpec/ExampleLength:
-  Max: 10
+  Max: 20
