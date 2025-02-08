@@ -15,7 +15,7 @@ module RedisSingleFile
       #
       # Delegates class method calls to instance method
       #
-      # @param [...] params passes directly to constructor
+      # @param [...] params passed directly to constructor
       # @return [Redis::Cluster] redis cluster instance
       def call(...) = new(...).call
     end
@@ -40,15 +40,21 @@ module RedisSingleFile
     def call
       raise ClusterDisabledError, 'cluster not detected' unless cluster_enabled?
 
-      # use extracted client options with parsed nodes
-      Redis::Cluster.new(**client_options, nodes:)
+      # use extracted client options with parsed master nodes
+      Redis::Cluster.new(**client_options, nodes: master_nodes)
     end
 
     private # ==================================================================
 
     attr_reader :redis
 
-    def nodes
+    def cluster_enabled?
+      redis.info('cluster')['cluster_enabled'] == '1'
+    rescue Redis::CommandError
+      false # assume cluster mode is disabled
+    end
+
+    def master_nodes
       cluster_nodes.filter_map do |node|
         next unless node[:flags].include?('master')
 
@@ -56,10 +62,18 @@ module RedisSingleFile
       end
     end
 
-    def cluster_enabled?
-      redis.info('cluster')['cluster_enabled'] == '1'
-    rescue Redis::CommandError
-      false # assume cluster mode is disabled
+    def client_options
+      config = redis._client.config
+      params = %i[
+        db ssl host port path custom username password protocol
+        ssl_params read_timeout write_timeout connect_timeout
+      ]
+
+      params_hash = params.each.with_object({}) do |key, memo|
+        memo[key] = config.public_send(key)
+      end
+
+      params_hash.merge(url: config.server_url)
     end
 
     def cluster_nodes
@@ -81,20 +95,6 @@ module RedisSingleFile
           slots: parts[8..]             # Assigned slots (if present)
         }
       end
-    end
-
-    def client_options
-      config = redis._client.config
-      params = %i[
-        db ssl host port path custom username password protocol
-        ssl_params read_timeout write_timeout connect_timeout
-      ]
-
-      params_hash = params.each.with_object({}) do |key, memo|
-        memo[key] = config.public_send(key)
-      end
-
-      params_hash.merge(url: config.server_url)
     end
   end
 end

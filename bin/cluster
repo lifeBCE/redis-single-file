@@ -11,6 +11,14 @@
 #   bin/cluster stop
 #   ...
 #
+# ---
+#
+# This shell script is an adaptation of the original script from the redis
+# gem that can be found at the link below. Appreciate the head start!
+#
+# Redis create-cluster script:
+# github.com/redis/redis/blob/unstable/utils/create-cluster/create-cluster
+#
 
 #
 # local run env settings
