@@ -262,6 +262,10 @@ Cleaning nodes-*.conf
 ```
 </details>
 
+After the cluster is running and configured, you can direct the `test.rb` and `benchmark.rb` scripts at the cluster by setting the port on execution.
+
+    $ REDIS_PORT=30001 bundle exec ruby benchmark.rb
+
 ## Disclaimer
 
 > [!WARNING]
