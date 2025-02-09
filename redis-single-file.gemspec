@@ -13,10 +13,11 @@ Gem::Specification.new do |spec|
   spec.homepage    = 'https://github.com/lifeBCE/redis-single-file'
   spec.license     = 'MIT'
 
-  # Build Requiremenrs
+  # Build Requirements
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 3.2.0'
 
+  # Resource Location Configuration
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['allowed_push_host'] = 'https://rubygems.org'
   spec.metadata['changelog_uri'] = 'https://github.com/lifeBCE/redis-single-file/blob/main/CHANGELOG.md'
@@ -27,7 +28,6 @@ Gem::Specification.new do |spec|
 
   # NOTE: Grabs list of files to include in gem from git. New files/directories
   # will not be picked up until running 'git add' prior to building gem.
-  #
   spec.files =
     IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
       # reject self and rejected paths defined above
