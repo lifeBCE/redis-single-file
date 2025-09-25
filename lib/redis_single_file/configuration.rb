@@ -25,6 +25,7 @@ module RedisSingleFile
     DEFAULT_EXPIRE_IN = 300 # 5 mins
     DEFAULT_MUTEX_KEY = 'RedisSingleFile/Mutex/%s'
     DEFAULT_QUEUE_KEY = 'RedisSingleFile/Queue/%s'
+    DEFAULT_CONCURRENCY = 1 # single slot enabled
 
     # class delegation methods to singleton instance
     #
@@ -33,13 +34,21 @@ module RedisSingleFile
     #   Configuration.port => Configuration.instance.port
     #
     class << self
-      %i[host port name expire_in mutex_key queue_key].each do |attr|
+      %i[
+        host
+        port
+        name
+        expire_in
+        concurrency
+        mutex_key
+        queue_key
+      ].each do |attr|
         define_method(attr) { instance.send(attr) }
       end
     end
 
     # writers used in config block to set new values
-    attr_writer :host, :port, :name, :expire_in
+    attr_writer :host, :port, :name, :expire_in, :concurrency
 
     # @return [String] redis server hostname value
     def host = @host || DEFAULT_HOST
@@ -52,6 +61,9 @@ module RedisSingleFile
 
     # @return [String] redis keys expiration value
     def expire_in = @expire_in || DEFAULT_EXPIRE_IN
+
+    # @return [String] redis lock concurrency value
+    def concurrency = @concurrency || DEFAULT_CONCURRENCY
 
     # @note This attr is not configurable
     # @return [String] synchronization mutex key name

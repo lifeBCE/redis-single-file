@@ -36,6 +36,7 @@ RedisSingleFile.configuration do |config|
   # config.port = '6379'
   # config.name = 'default'
   # config.expire_in = 300
+  # config.concurrency = 1
 end
 ```
 
@@ -61,6 +62,14 @@ end
 ```ruby
    semaphore = RedisSingleFile.new(name: :s3_file_upload)
    semaphore.synchronize(timeout: 15) do
+      # synchronized logic defined here...
+   end
+```
+
+#### Support concurrent worker processing
+```ruby
+   semaphore = RedisSingleFile.new(name: :concurrent_queue)
+   semaphore.synchronize(concurrency: 3) do
       # synchronized logic defined here...
    end
 ```

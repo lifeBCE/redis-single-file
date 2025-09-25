@@ -37,25 +37,41 @@ RSpec.describe RedisSingleFile::Semaphore do
     expect(Redis).to have_received(:new).with(host: 'localhost', port: '1234')
   end
 
-  it '#synchronize method calls synchronize! with default timeout' do
+  it '#synchronize method calls synchronize! with default timeout/concurrency' do
     semaphore = described_class.new
-    expect(semaphore).to receive(:synchronize!).with(timeout: 0)
+    allow(semaphore).to receive(:synchronize!)
 
     semaphore.synchronize { nil }
+    expect(semaphore).to(
+      have_received(:synchronize!).with(timeout: 0, concurrency: 1)
+    )
   end
 
   it '#synchronize method calls synchronize! with provided timeout' do
     semaphore = described_class.new
-    expect(semaphore).to receive(:synchronize!).with(timeout: 15)
+    allow(semaphore).to receive(:synchronize!)
 
     semaphore.synchronize(timeout: 15) { nil }
+    expect(semaphore).to(
+      have_received(:synchronize!).with(timeout: 15, concurrency: 1)
+    )
+  end
+
+  it '#synchronize method calls synchronize! with provided concurrency' do
+    semaphore = described_class.new
+    allow(semaphore).to receive(:synchronize!)
+
+    semaphore.synchronize(concurrency: 3) { nil }
+    expect(semaphore).to(
+      have_received(:synchronize!).with(timeout: 0, concurrency: 3)
+    )
   end
 
   it '#synchronize returns nil on timeout' do
     semaphore = described_class.new
     expect(semaphore).to(
       receive(:synchronize!)
-        .with(timeout: 0)
+        .with(timeout: 0, concurrency: 1)
         .and_raise(RedisSingleFile::QueueTimeoutError)
     )
 
@@ -76,6 +92,7 @@ RSpec.describe RedisSingleFile::Semaphore do
   it '#synchronize! primes the queue when first client' do
     expect(redis_mock).to receive(:del)
     expect(redis_mock).to receive(:lpush)
+    expect(redis_mock).to receive(:llen).and_return(1)
     expect(redis_mock).to receive(:blpop).and_return('1')
 
     semaphore = described_class.new
@@ -84,9 +101,22 @@ RSpec.describe RedisSingleFile::Semaphore do
     expect(result).to eq('test body')
   end
 
+  it '#synchronize! primes the queue with concurrency when first client' do
+    expect(redis_mock).to receive(:del)
+    expect(redis_mock).to receive(:lpush).exactly(3).times
+    expect(redis_mock).to receive(:llen).and_return(3)
+    expect(redis_mock).to receive(:blpop).and_return('1')
+
+    semaphore = described_class.new
+    result = semaphore.synchronize!(concurrency: 3) { 'test body' }
+
+    expect(result).to eq('test body')
+  end
+
   it '#synchronize! skips priming the queue when not first client' do
     expect(redis_mock).not_to receive(:del)
     expect(redis_mock).not_to receive(:lpush)
+    expect(redis_mock).to receive(:llen).and_return(1)
     expect(redis_mock).to receive(:getset).and_return('1')
     expect(redis_mock).to receive(:blpop).and_return('1')
 
@@ -99,6 +129,7 @@ RSpec.describe RedisSingleFile::Semaphore do
   it '#synchronize! persists redis keys when executing block' do
     expect(redis_mock).to receive(:blpop).and_return('1')
     expect(redis_mock).to receive(:persist).twice
+    expect(redis_mock).to receive(:llen).and_return(1)
 
     semaphore = described_class.new
     result = semaphore.synchronize! { 'test body' }
@@ -108,7 +139,8 @@ RSpec.describe RedisSingleFile::Semaphore do
 
   it '#synchronize! unlocks queue when exiting' do
     expect(redis_mock).to receive(:blpop).and_return('1')
-    expect(redis_mock).to receive(:lpush)
+    expect(redis_mock).to receive(:lpush).twice
+    expect(redis_mock).to receive(:llen).and_return(0)
     expect(redis_mock).to receive(:expire).twice
 
     semaphore = described_class.new
