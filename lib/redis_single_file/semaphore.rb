@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry'
-
 module RedisSingleFile
   #
   # This class acts as the main synchronization engine for distributed logic
