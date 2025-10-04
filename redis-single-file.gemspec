@@ -36,9 +36,9 @@ Gem::Specification.new do |spec|
       end
     end
 
-  # Identify Gem Exectuables
-  spec.bindir = 'exe'
-  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
+  # Identify Gem Executables
+  # spec.bindir = 'exe'
+  # spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
 
   # Redis Single File Dependencies
   spec.add_dependency 'redis', '~> 5.3.0'

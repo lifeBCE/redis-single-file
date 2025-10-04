@@ -12,6 +12,7 @@ module RedisSingleFile
   # @attr name [String] custom sync queue name
   # @attr host [String] host for redis server
   # @attr port [String] port for redis server
+  # @attr concurrency [Integer] simultaneous slots allowed
   #
   # @example Default lock name and infinite blocking
   #   semaphore = RedisSingleFile::Semaphore.new
@@ -65,23 +66,26 @@ module RedisSingleFile
       redis: nil,               # provide your own redis instance
       name: Configuration.name, # designate queue name per session
       host: Configuration.host, # designate redis host per session
-      port: Configuration.port  # designate redis port per session
+      port: Configuration.port, # designate redis port per session
+      concurrency: Configuration.concurrency # concurrent workers
     )
       @redis = redis || Redis.new(host:, port:)
 
       @mutex_val = name
       @mutex_key = format(Configuration.mutex_key, @mutex_val)
       @queue_key = format(Configuration.queue_key, @mutex_val)
+      @concurrency = concurrency.to_i
     end
 
     # Queues up client and waits for turn to execute. Returns nil
     # when queue wait time expires.
     #
     # @param timeout [Integer] seconds for client to wait in queue
+    # @param concurrency [Integer] override concurrent workers
     # @yieldreturn [...] response from synchronized block execution
     # @return [nil] redis blpop timeout
-    def synchronize(timeout: 0, &)
-      synchronize!(timeout:, &)
+    def synchronize(timeout: 0, concurrency: @concurrency, &)
+      synchronize!(timeout:, concurrency:, &)
     rescue QueueTimeoutError => _e
       nil
     end
@@ -90,14 +94,15 @@ module RedisSingleFile
     # when queue wait time expires.
     #
     # @param timeout [Integer] seconds for blpop to wait in queue
+    # @param concurrency [Integer] override concurrent workers
     # @yieldreturn [...] response from synchronized block execution
     # @raise [QueueTimeoutError] redis blpop timeout
-    def synchronize!(timeout: 0)
+    def synchronize!(timeout: 0, concurrency: @concurrency)
       return unless block_given?
 
       with_retry_protection do
-        prime_queue unless redis.getset(mutex_key, mutex_val)
-        raise QueueTimeoutError unless redis.blpop(queue_key, timeout:)
+        prime_queue(concurrency) unless redis.getset(mutex_key, mutex_val)
+        raise QueueTimeoutError  unless redis.blpop(queue_key, timeout:)
 
         redis.multi do
           redis.persist(mutex_key) # unexpire during execution
@@ -108,7 +113,7 @@ module RedisSingleFile
       yield
     ensure
       # always cycle the queue when exiting
-      unlock_queue if block_given?
+      unlock_queue(concurrency) if block_given?
     end
 
     private #===================================================================
@@ -119,20 +124,22 @@ module RedisSingleFile
       @expire_in ||= Configuration.expire_in
     end
 
-    def prime_queue
+    def prime_queue(concurrency)
       with_retry_protection do
         redis.multi do
-          redis.del(queue_key)        # remove existing queue
-          redis.lpush(queue_key, '1') # create and prime new queue
+          redis.del(queue_key) # remove existing queue
+          concurrency.times do # create and prime new queue
+            redis.lpush(queue_key, '1')
+          end
         end
       end
     end
 
-    def unlock_queue
+    def unlock_queue(concurrency)
       with_retry_protection do
         redis.multi do
-          # queue next client execution if queue is empty
-          redis.lpush(queue_key, '1') if redis.llen(queue_key) == 0
+          # queue next client execution if queue has space (concurrency)
+          redis.lpush(queue_key, '1') if redis.llen(queue_key) < concurrency
           redis.expire(mutex_key, expire_in) # set expiration for auto removal
           redis.expire(queue_key, expire_in) # set expiration for auto removal
         end
