@@ -21,6 +21,10 @@ Style/NumericPredicate:
   Exclude:
     - lib/redis_single_file/semaphore.rb
 
+Naming/FileName:
+  Exclude:
+    - lib/redis-single-file.rb
+
 #
 # rspec stuff
 #
