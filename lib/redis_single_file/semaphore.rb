@@ -32,6 +32,12 @@ module RedisSingleFile
   #      # synchronized logic defined here...
   #   end
   #
+  # @example Support concurrent worker processing
+  #   semaphore = RedisSingleFile::Semaphore.new(name: :concurrent_queue)
+  #   semaphore.synchronize(concurrency: 3) do
+  #     # synchronized logic defined here...
+  #   end
+  #
   # @example Use your own redis client instance
   #   redis = Redis.new(...)
   #   semaphore = RedisSingleFile::Semaphore.new(redis:)
@@ -60,6 +66,12 @@ module RedisSingleFile
     #   Each synchronized execution can be done on a different redis port
     #   than globally configured. Passing a value for this attribute will
     #   redirect to that port.
+    #
+    # @note concurrency:
+    #   When a distributed lock needs to allow multiple executions at once,
+    #   concurrency can be used. When this settings is set to more than the
+    #   default value of 1, the queue will allow that many simultaneous slots
+    #   in the distributed queue.
     #
     # @return [self] semaphore instance
     def initialize(

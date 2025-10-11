@@ -41,8 +41,8 @@ Gem::Specification.new do |spec|
   # spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
 
   # Redis Single File Dependencies
-  spec.add_dependency 'redis', '~> 5.3.0'
-  spec.add_dependency 'redis-clustering', '~> 5.3.0'
+  spec.add_dependency 'redis', '~> 5.4'
+  spec.add_dependency 'redis-clustering', '~> 5.4'
 
   # Disable MFA Requirement - github publishing can't support
   spec.metadata['rubygems_mfa_required'] = 'false'
