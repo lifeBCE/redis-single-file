@@ -112,9 +112,13 @@ module RedisSingleFile
     def synchronize!(timeout: 0, concurrency: @concurrency)
       return unless block_given?
 
+      token_acquired = false
+
       with_retry_protection do
         prime_queue(concurrency) unless redis.getset(mutex_key, mutex_val)
         raise QueueTimeoutError  unless redis.blpop(queue_key, timeout:)
+
+        token_acquired = true
 
         redis.multi do
           redis.persist(mutex_key) # unexpire during execution
@@ -124,8 +128,8 @@ module RedisSingleFile
 
       yield
     ensure
-      # always cycle the queue when exiting
-      unlock_queue(concurrency) if block_given?
+      # only return a token this client successfully acquired
+      unlock_queue(concurrency) if token_acquired
     end
 
     private #===================================================================

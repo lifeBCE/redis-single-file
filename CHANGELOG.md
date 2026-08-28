@@ -1,3 +1,12 @@
+## [0.1.6] - 2026-08-27
+
+## What's Changed
+
+* Return a semaphore permit only after `BLPOP` successfully acquires one.
+
+---
+<br />
+
 ## [0.1.3] - 2025-02-08
 
 ## What's Changed
