@@ -1,0 +1,68 @@
+name: Release to RubyGems
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
+        with:
+          ruby-version: '3.4.10'
+          bundler-cache: true
+      - name: Verify tag and source branch
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gem_version="$(ruby -Ilib -rredis_single_file/version -e 'print RedisSingleFile::VERSION')"
+          expected_tag="v${gem_version}"
+
+          if [[ "${RELEASE_TAG}" != "${expected_tag}" ]]; then
+            echo "Release tag ${RELEASE_TAG} does not match gem version ${gem_version}."
+            exit 1
+          fi
+
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "Release tag ${RELEASE_TAG} is not attached to a commit on main."
+            exit 1
+          fi
+      - name: Run tests and lint
+        run: bundle exec rake
+      - name: Build gem
+        run: gem build redis-single-file.gemspec
+
+  publish:
+    name: Publish gem
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
+        with:
+          ruby-version: '3.4.10'
+          bundler-cache: true
+      - uses: rubygems/release-gem@7f9650160c1a4e7989fdc9855807bdbd421d8b6b # v1

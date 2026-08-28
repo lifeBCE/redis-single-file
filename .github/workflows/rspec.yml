@@ -3,20 +3,27 @@
 #
 name: CI RSpec Tests
 on: [pull_request]
+permissions:
+  contents: read
 jobs:
   rspec:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
         ruby:
-          - '3.3.6'
+          - '3.2'
+          - '3.3'
+          - '3.4'
+          - '4.0'
     services:
       redis:
         image: redis
         ports: ["6379:6379"]
     steps:
-    - uses: actions/checkout@v4
-    - uses: ruby/setup-ruby@v1
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+    - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true

@@ -5,7 +5,8 @@ name: CI CodeQL Analysis
 on: [pull_request]
 jobs:
   codeql:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       actions: read
       contents: read
@@ -16,10 +17,10 @@ jobs:
         language: ['ruby']
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
       with:
         languages: ${{ matrix.language }}
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4

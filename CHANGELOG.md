@@ -3,6 +3,7 @@
 ## What's Changed
 
 * Return a semaphore permit only after `BLPOP` successfully acquires one.
+* Publish through a verified, MFA-protected RubyGems trusted publisher.
 
 ---
 <br />
