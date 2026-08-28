@@ -44,8 +44,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'redis', '~> 5.4'
   spec.add_dependency 'redis-clustering', '~> 5.4'
 
-  # Disable MFA Requirement - github publishing can't support
-  spec.metadata['rubygems_mfa_required'] = 'false'
+  # Require every gem owner to protect releases with MFA.
+  spec.metadata['rubygems_mfa_required'] = 'true'
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

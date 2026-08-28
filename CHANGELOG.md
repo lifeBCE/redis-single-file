@@ -1,3 +1,15 @@
+## [0.1.6] - 2026-08-27
+
+## What's Changed
+
+* Return a semaphore permit only after `BLPOP` successfully acquires one.
+* Publish through a verified, MFA-protected RubyGems trusted publisher.
+* Update the development and release runtime to Ruby 3.4.10 and test
+  compatibility across Ruby 3.2, 3.3, 3.4, and 4.0.
+
+---
+<br />
+
 ## [0.1.3] - 2025-02-08
 
 ## What's Changed

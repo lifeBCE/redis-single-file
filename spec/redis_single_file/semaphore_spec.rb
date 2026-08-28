@@ -68,16 +68,29 @@ RSpec.describe RedisSingleFile::Semaphore do
   end
 
   it '#synchronize returns nil on timeout' do
-    semaphore = described_class.new
-    expect(semaphore).to(
-      receive(:synchronize!)
-        .with(timeout: 0, concurrency: 1)
-        .and_raise(RedisSingleFile::QueueTimeoutError)
-    )
+    expect(redis_mock).to receive(:getset).and_return('1')
+    expect(redis_mock).to receive(:blpop).and_return(nil)
+    expect(redis_mock).not_to receive(:lpush)
+    expect(redis_mock).not_to receive(:expire)
 
-    result = semaphore.synchronize { nil }
+    semaphore = described_class.new
+
+    result = semaphore.synchronize(timeout: 1) { raise 'should not execute' }
 
     expect(result).to be_nil
+  end
+
+  it '#synchronize! raises without unlocking the queue on timeout' do
+    expect(redis_mock).to receive(:getset).and_return('1')
+    expect(redis_mock).to receive(:blpop).and_return(nil)
+    expect(redis_mock).not_to receive(:lpush)
+    expect(redis_mock).not_to receive(:expire)
+
+    semaphore = described_class.new
+
+    expect do
+      semaphore.synchronize!(timeout: 1) { raise 'should not execute' }
+    end.to raise_error(RedisSingleFile::QueueTimeoutError)
   end
 
   it '#synchronize! returns without execution when no block provided' do
@@ -147,6 +160,19 @@ RSpec.describe RedisSingleFile::Semaphore do
     result = semaphore.synchronize! { 'test body' }
 
     expect(result).to eq('test body')
+  end
+
+  it '#synchronize! unlocks an acquired token when the block raises' do
+    expect(redis_mock).to receive(:blpop).and_return('1')
+    expect(redis_mock).to receive(:lpush).twice
+    expect(redis_mock).to receive(:llen).and_return(0)
+    expect(redis_mock).to receive(:expire).twice
+
+    semaphore = described_class.new
+
+    expect do
+      semaphore.synchronize! { raise 'test failure' }
+    end.to raise_error('test failure')
   end
 
   it '#synchronize! does not cycle queue when token already exists' do

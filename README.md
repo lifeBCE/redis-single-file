@@ -161,8 +161,13 @@ Redlock is not susceptible to this given the use of the multi-master deployment 
 
 ```spec
 Finished in 0.00818 seconds (files took 0.09999 seconds to load)
-22 examples, 0 failures
+30 examples, 0 failures
 ```
+
+## Releasing
+
+See [RELEASING.md](RELEASING.md) for the trusted-publishing setup and the
+versioned release procedure.
 
 ## Benchmark
 
